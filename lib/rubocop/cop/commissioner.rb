@@ -34,8 +34,10 @@ module RuboCop
           def #{callback}(node)
             @cops.each do |cop|
               next unless cop.respond_to?(:#{callback})
-              with_cop_error_handling(cop) do
-                cop.send(:#{callback}, node)
+              with_cop_timing(cop) do
+                with_cop_error_handling(cop) do
+                  cop.send(:#{callback}, node)
+                end
               end
             end
 
@@ -82,8 +84,10 @@ module RuboCop
             next unless cop.relevant_file?(filename)
           end
 
-          with_cop_error_handling(cop) do
-            cop.investigate(processed_source)
+          with_cop_timing(cop) do
+            with_cop_error_handling(cop) do
+              cop.investigate(processed_source)
+            end
           end
         end
       end
@@ -96,6 +100,12 @@ module RuboCop
         else
           @errors[cop] << e
         end
+      end
+
+      def with_cop_timing(cop)
+        start = Time.now
+        yield
+        cop.elapsed += Time.now - start if cop.respond_to?(:elapsed)
       end
     end
   end

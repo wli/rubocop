@@ -23,6 +23,7 @@ module RuboCop
       @config_store = config_store
       @errors = []
       @aborting = false
+      @cop_timings = {}
     end
 
     def run(paths)
@@ -48,18 +49,39 @@ module RuboCop
 
       formatter_set.started(files)
 
+      file_timings = {}
       files.each do |file|
         break if aborting?
+
+        start = Time.now
+
         offenses = process_file(file)
         all_passed = false if offenses.any? { |o| considered_failure?(o) }
         inspected_files << file
+
+        file_timings[file] = Time.now - start
+
         break if @options[:fail_fast] && !all_passed
       end
+
+      display_timings(file_timings) if @cop_timings.count > 0
 
       all_passed
     ensure
       formatter_set.finished(inspected_files.freeze)
       formatter_set.close_output_files
+    end
+
+    def display_timings(file_timings)
+      puts "\nSlowest Cops"
+      @cop_timings.sort_by { |_, v| v }.reverse.first(20).each do |key, value|
+        puts format('%.3fs: %s', value, key)
+      end
+
+      puts "\nSlowest Files"
+      file_timings.sort_by { |_, v| v }.reverse.first(20).each do |key, value|
+        puts format('%.3fs: %s', value, key)
+      end
     end
 
     def process_file(file)
@@ -134,6 +156,16 @@ module RuboCop
       team = Cop::Team.new(mobilized_cop_classes(config), config, @options)
       offenses = team.inspect_file(processed_source)
       @errors.concat(team.errors)
+
+      team.cops.each do |cop|
+        next unless cop.respond_to?(:elapsed)
+        if @cop_timings.key?(cop.name)
+          @cop_timings[cop.name] += cop.elapsed
+        else
+          @cop_timings[cop.name] = cop.elapsed
+        end
+      end if display_performance?(config)
+
       [offenses, team.updated_source_file?]
     end
 
@@ -177,6 +209,11 @@ module RuboCop
 
     def style_guide_cops_only?(config)
       @options[:only_guide_cops] || config['AllCops']['StyleGuideCopsOnly']
+    end
+
+    def display_performance?(config)
+      @options[:debug] || @options[:display_performance] ||
+        config['AllCops'] && config['AllCops']['DisplayPerformance']
     end
 
     def formatter_set

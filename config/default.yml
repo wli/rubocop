@@ -38,6 +38,10 @@ AllCops:
   # behavior by overriding DisplayStyleGuide, or by giving the
   # -S/--display-style-guide option.
   DisplayStyleGuide: false
+  # Performance timings are not displayed by default. Change behavior by
+  # overriding DisplayPerformance, or by giving the -p/--display-performance
+  # option.
+  DisplayPerformance: false
   # Additional cops that do not reference a style guide rule may be enabled by
   # default. Change behavior by overriding StyleGuideCopsOnly, or by giving
   # the --only-guide-cops option.

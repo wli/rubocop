@@ -72,6 +72,7 @@ module RuboCop
 
       attr_reader :config, :offenses, :corrections
       attr_accessor :processed_source # TODO: Bad design.
+      attr_accessor :elapsed
 
       @all = CopStore.new
 
@@ -113,6 +114,8 @@ module RuboCop
 
         @offenses = []
         @corrections = []
+
+        @elapsed = 0
       end
 
       def join_force?(_force_class)

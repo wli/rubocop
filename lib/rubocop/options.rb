@@ -124,6 +124,7 @@ module RuboCop
       option(opts, '-d', '--debug')
       option(opts, '-D', '--display-cop-names')
       option(opts, '-S', '--display-style-guide')
+      option(opts, '-p', '--display-performance')
       option(opts, '-R', '--rails')
       option(opts, '-l', '--lint')
       option(opts, '-a', '--auto-correct')
@@ -225,6 +226,7 @@ module RuboCop
       debug:                'Display debug info.',
       display_cop_names:    'Display cop names in offense messages.',
       display_style_guide:  'Display style guide URLs in offense messages.',
+      display_performance:  'Show performance timing.',
       rails:                'Run extra Rails cops.',
       lint:                 'Run only lint cops.',
       auto_correct:         'Auto-correct offenses.',
